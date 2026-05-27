@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workspace Académico — TaskCampus</title>
+    <meta
+      name="description"
+      content="Plataforma de seguimiento y control de pendientes académicos para ingeniería."
+    />
+    <link rel="stylesheet" href="src/styles/main.css" />
+  </head>
+  <body class="app-shell">
+    <div class="app-container">
+      <header class="site-header">
+        <div class="header-inner">
+          <div>
+            <p class="text-xs uppercase tracking-[0.3em] text-indigo-600 font-bold">Portal Estudiantil</p>
+            <h1 class="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">Panel de Control de Asignaturas</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Mapeo del ciclo de vida de actividades estudiantiles, almacenamiento local persistente y categorización por criticidad.</p>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-main">
+        <div class="page-grid">
+          <aside class="aside-panel">
+            <div class="card panel">
+              <h2 class="text-xl font-bold text-slate-900 tracking-tight">Segmentación y Filtros</h2>
+              <p class="text-xs text-slate-500 mb-4">Aísla tareas por materias o estados específicos.</p>
+              <div class="space-y-4" id="filters-container"></div>
+            </div>
+            
+            <div class="card panel">
+              <h2 class="text-xl font-bold text-slate-900 tracking-tight">Rendimiento Semestral</h2>
+              <p class="text-xs text-slate-500 mb-4">Métricas consolidadas del avance en el ciclo.</p>
+              <div class="grid gap-4 sm:grid-cols-2" id="summary-container"></div>
+            </div>
+          </aside>
+
+          <article class="card panel">
+            <div class="panel-heading">
+              <h2 class="text-xl font-bold text-slate-900 tracking-tight">Registro de Entregables</h2>
+              <p class="mt-1 text-xs text-slate-500">Inyecta nuevas obligaciones académicas al storage del sistema.</p>
+            </div>
+            <form id="task-form" class="task-form space-y-4">
+              <input type="hidden" id="task-id" />
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="titulo" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">Nombre de la Actividad</label>
+                  <input id="titulo" name="titulo" type="text" class="form-input" placeholder="Ej. Laboratorio de Rutas" required />
+                </div>
+                <div class="form-control">
+                  <label for="asignatura" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">Cátedra Universitaria</label>
+                  <input id="asignatura" name="asignatura" type="text" class="form-input" placeholder="Ej. Programación Móvil" required />
+                </div>
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="fecha_entrega" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">Límite de Entrega</label>
+                  <input id="fecha_entrega" name="fecha_entrega" type="date" class="form-input" required />
+                </div>
+                <div class="form-control">
+                  <label for="prioridad" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">Nivel de Prioridad</label>
+                  <select id="prioridad" name="prioridad" class="form-select" required>
+                    <option value="">Seleccionar nivel</option>
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="form-control">
+                  <label for="estado" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">Estado Operativo</label>
+                  <select id="estado" name="estado" class="form-select" required>
+                    <option value="">Seleccionar estado</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en proceso">En proceso</option>
+                    <option value="finalizada">Finalizada</option>
+                  </select>
+                </div>
+                <div class="form-control">
+                  <label for="activo" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">Vigente en el Sistema</label>
+                  <select id="activo" name="activo" class="form-select" required>
+                    <option value="true">Habilitado</option>
+                    <option value="false">Archivado</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label for="descripcion" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">Especificaciones Técnicas</label>
+                <textarea id="descripcion" name="descripcion" rows="3" class="form-textarea" placeholder="Describe detalladamente los requerimientos del docente..." required></textarea>
+              </div>
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
+                <p id="form-status" class="text-sm font-medium"></p>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button type="submit" class="button button-primary">Procesar Tarea</button>
+                  <button id="reset-button" type="button" class="button button-secondary">Vaciar</button>
+                </div>
+              </div>
+            </form>
+          </article>
+        </div>
+
+        <section class="card panel mt-8">
+          <div class="section-header">
+            <div>
+              <h2 class="text-2xl font-bold tracking-tight text-slate-900">Repositorio de Actividades</h2>
+              <p class="mt-1 text-sm text-slate-500">Listado reactivo enlazado al almacenamiento local del navegador.</p>
+            </div>
+            <p id="task-count" class="text-sm font-semibold text-indigo-600 bg-indigo-50 px-4 py-1.5 rounded-full"></p>
+          </div>
+          <div id="task-list" class="mt-6 grid gap-4"></div>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="src/main.ts"></script>
+  </body>
+</html>

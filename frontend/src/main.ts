@@ -3,12 +3,12 @@ import { configurarFormulario, cargarTareaEnFormulario, cargarValoresIniciales }
 import { renderizarTareas } from './modules/tasks/task-list';
 import { configurarFiltros, aplicarFiltros, Filtros } from './modules/filters/filters';
 import { calcularResumen, renderResumen } from './modules/summary/summary';
-import { agregarTarea, actualizarTarea, eliminarTarea, obtenerTareas } from './services/tareas.service';
+import { obtenerTareasAsync, agregarTareaAsync, actualizarTareaAsync, eliminarTareaAsync } from './services/tareas.service';
 
 let tareas: Tarea[] = [];
 let filtros: Filtros = { asignatura: '', prioridad: '', estado: '' };
 
-function actualizarVista(): void {
+async function actualizarVista(): Promise<void> {
   const tareasFiltradas = aplicarFiltros(tareas, filtros);
 
   renderizarTareas(tareasFiltradas, {
@@ -16,37 +16,44 @@ function actualizarVista(): void {
       cargarTareaEnFormulario(tarea);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
-    onDelete(id) {
-      eliminarTarea(id);
-      tareas = obtenerTareas();
-      actualizarVista();
+    async onDelete(id) {
+      // Mensaje de advertencia interactivo antes de procesar el DELETE en PostgreSQL
+      const confirmarBorrado = confirm('¿Está completamente seguro de que desea remover esta tarea del repositorio académico? Esta acción no se puede deshacer.');
+      
+      if (confirmarBorrado) {
+        const exito = await eliminarTareaAsync(id);
+        if (exito) {
+          tareas = await obtenerTareasAsync();
+          actualizarVista();
+        }
+      }
     },
   });
 
   renderResumen(calcularResumen(tareasFiltradas));
 }
 
-function inicializarApp(): void {
-  tareas = obtenerTareas();
+async function inicializarApp(): Promise<void> {
+  // Carga inicial asíncrona de datos desde la base de datos de PostgreSQL
+  tareas = await obtenerTareasAsync();
 
   configurarFiltros((nuevosFiltros) => {
     filtros = nuevosFiltros;
     actualizarVista();
   });
 
-  configurarFormulario((tarea, id) => {
+  configurarFormulario(async (tarea, id) => {
     if (id) {
-      actualizarTarea(id, tarea);
+      await actualizarTareaAsync(id, tarea);
     } else {
-      agregarTarea(tarea);
+      await agregarTareaAsync(tarea);
     }
 
-    tareas = obtenerTareas();
+    tareas = await obtenerTareasAsync();
     cargarValoresIniciales();
     actualizarVista();
   });
 
-  // Inicializa el formulario y la vista sin datos provenientes del usuario.
   cargarValoresIniciales();
   actualizarVista();
 }

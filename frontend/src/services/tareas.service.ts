@@ -1,69 +1,71 @@
+// src/services/tareas.service.ts
 import type { Tarea } from '../types/tarea.interface';
-import { leerStorage, escribirStorage, inicializarStorage } from './storage.service';
-import { tareasIniciales } from './initial-data';
+
+const API_BASE_URL = 'http://localhost:5000/tasks';
 
 /**
- * Devuelve la lista de tareas almacenadas en localStorage.
- * Si el almacenamiento está vacío, inicializa con tareas de ejemplo.
+ * Capa de Abstracción de Datos Académicos.
+ * Migración transparente de almacenamiento local (localStorage) a persistencia JSON distribuida vía API REST.
  */
+
+// Interceptamos la inicialización para verificar que el servidor esté en línea de modo asíncrono
 export function obtenerTareas(): Tarea[] {
-  inicializarStorage(JSON.stringify(tareasIniciales));
-  const contenido = leerStorage();
-  if (!contenido) {
-    return [];
-  }
+  // Retornamos un array vacío de sincronización inicial
+  // La carga reactiva en tiempo real se ejecutará desde el inicializador del flujo principal
+  return [];
+}
 
+export async function obtenerTareasAsync(): Promise<Tarea[]> {
   try {
-    const tareas = JSON.parse(contenido) as Tarea[];
-    return Array.isArray(tareas) ? tareas : [];
-  } catch {
+    const response = await fetch(API_BASE_URL);
+    if (!response.ok) throw new Error('Fallo en la comunicación con el repositorio central.');
+    return await response.json();
+  } catch (error) {
+    console.error('API REST Connection Error:', error);
     return [];
   }
 }
 
-export function guardarTareas(tareas: Tarea[]): void {
-  escribirStorage(JSON.stringify(tareas));
-}
-
-/**
- * Agrega una nueva tarea y genera un id incremental.
- */
-export function agregarTarea(tarea: Omit<Tarea, 'id'>): Tarea {
-  const tareas = obtenerTareas();
-  const nuevoId = tareas.length > 0 ? Math.max(...tareas.map((item) => item.id)) + 1 : 1;
-  const nuevaTarea: Tarea = { ...tarea, id: nuevoId };
-  guardarTareas([...tareas, nuevaTarea]);
-  return nuevaTarea;
-}
-
-/**
- * Actualiza una tarea existente. Devuelve la tarea actualizada o null si no existe.
- */
-export function actualizarTarea(id: number, cambios: Partial<Tarea>): Tarea | null {
-  const tareas = obtenerTareas();
-  const indice = tareas.findIndex((tarea) => tarea.id === id);
-
-  if (indice === -1) {
+export async function agregarTareaAsync(tarea: Omit<Tarea, 'id'>): Promise<Tarea | null> {
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tarea),
+    });
+    if (!response.ok) throw new Error('Fallo al registrar la nueva asignación en la base de datos.');
+    return await response.json();
+  } catch (error) {
+    console.error('API REST Connection Error:', error);
     return null;
   }
-
-  const actualizada = { ...tareas[indice], ...cambios, id };
-  tareas[indice] = actualizada;
-  guardarTareas(tareas);
-  return actualizada;
 }
 
-/**
- * Elimina una tarea por id y devuelve verdadero si se eliminó correctamente.
- */
-export function eliminarTarea(id: number): boolean {
-  const tareas = obtenerTareas();
-  const resultado = tareas.filter((tarea) => tarea.id !== id);
+export async function actualizarTareaAsync(id: number, cambios: Partial<Tarea>): Promise<Tarea | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cambios),
+    });
+    if (!response.ok) throw new Error('Fallo al modificar los parámetros del registro.');
+    return await response.json();
+  } catch (error) {
+    console.error('API REST Connection Error:', error);
+    return null;
+  }
+}
 
-  if (resultado.length === tareas.length) {
+export async function eliminarTareaAsync(id: number): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Fallo al remover la tupla del fichero físico.');
+    const data = await response.json();
+    return data.result === true;
+  } catch (error) {
+    console.error('API REST Connection Error:', error);
     return false;
   }
-
-  guardarTareas(resultado);
-  return true;
 }

@@ -1,3 +1,4 @@
+// src/modules/tasks/task-form.ts
 import type { Tarea } from '../../types/tarea.interface';
 
 type SubmitHandler = (tarea: Omit<Tarea, 'id'>, id?: number) => void;
@@ -11,13 +12,13 @@ type FormState = {
 const state = {} as FormState;
 
 function crearInputs() {
-  const titulo = document.querySelector<HTMLInputElement>('#titulo');
-  const asignatura = document.querySelector<HTMLInputElement>('#asignatura');
-  const fecha_entrega = document.querySelector<HTMLInputElement>('#fecha_entrega');
-  const prioridad = document.querySelector<HTMLSelectElement>('#prioridad');
-  const estado = document.querySelector<HTMLSelectElement>('#estado');
-  const activo = document.querySelector<HTMLSelectElement>('#activo');
-  const descripcion = document.querySelector<HTMLTextAreaElement>('#descripcion');
+  const titulo = document.querySelector<HTMLInputElement>('#form-titulo');
+  const asignatura = document.querySelector<HTMLInputElement>('#form-asignatura');
+  const fecha_entrega = document.querySelector<HTMLInputElement>('#form-fecha-entrega');
+  const prioridad = document.querySelector<HTMLSelectElement>('#form-prioridad');
+  const estado = document.querySelector<HTMLSelectElement>('#form-estado');
+  const activo = document.querySelector<HTMLSelectElement>('#form-activo');
+  const descripcion = document.querySelector<HTMLTextAreaElement>('#form-descripcion');
   const statusNode = document.querySelector<HTMLElement>('#form-status');
   const form = document.querySelector<HTMLFormElement>('#task-form');
 
@@ -52,7 +53,6 @@ export function configurarFormulario(onSubmit: SubmitHandler): void {
     onSubmit(valores, id);
     state.form.reset();
     
-    // Aseguramos limpiar el input hidden del ID de forma segura
     const idInput = state.form.querySelector<HTMLInputElement>('#task-id');
     if (idInput) idInput.value = '';
     
@@ -115,11 +115,11 @@ function validarFormulario(valores: Omit<Tarea, 'id'>): boolean {
   const camposInvalidos: Array<{ field: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement; message: string }> = [];
 
   if (valores.titulo.length === 0) {
-    camposInvalidos.push({ field: state.inputs.titulo, message: 'Campo requerido: El nombre de la actividad es obligatorio.' });
+    camposInvalidos.push({ field: state.inputs.titulo, message: 'Campo requerido: El nombre de la tarea es obligatorio.' });
   }
 
   if (valores.asignatura.length === 0) {
-    camposInvalidos.push({ field: state.inputs.asignatura, message: 'Campo requerido: La cátedra universitaria es obligatoria.' });
+    camposInvalidos.push({ field: state.inputs.asignatura, message: 'Campo requerido: La materia es obligatoria.' });
   }
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(valores.fecha_entrega)) {
